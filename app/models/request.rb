@@ -49,12 +49,12 @@ class Request < ApplicationRecord
 
   def confirm!
     self.confirmed = true
-    self.confirmed_at   = DateTime.now
+    self.confirmed_at   = Time.zone.now
     self.save
   end
 
   def sent_confirmation_email
-    RequestMailer.account_activation(self).deliver_now
+    RequestMailer.email_confirmation(self).deliver_now
   end
 
   # Returns a random token

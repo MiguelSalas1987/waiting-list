@@ -1,0 +1,5 @@
+Hi <%= @request.name %>,
+
+Thanks for your interest in our coworking space, please click the link below to confirm your request:
+
+<%=  edit_email_confirmation_url(@request.confirmation_token, email: @request.email) %>
