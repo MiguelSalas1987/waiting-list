@@ -8,6 +8,7 @@ class Request < ApplicationRecord
             format: {with: VALID_EMAIL_REGEX},
             uniqueness: {case_sensitive: false}
             #this implicitely has uniqueness true
+
   before_save   :downcase_email
   before_create :create_confirmation_digest
 
