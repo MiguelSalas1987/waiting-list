@@ -48,6 +48,10 @@ class Request < ApplicationRecord
     self.save
   end
 
+  def sent_confirmation_email
+    RequestMailer.account_activation(self).deliver_now
+  end
+
 end
 
 
