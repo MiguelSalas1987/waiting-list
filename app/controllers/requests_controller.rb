@@ -11,7 +11,6 @@ class RequestsController < ApplicationController
       redirect_to new_request_url
     else
       render 'new'
-      debugger
     end
   end
 
