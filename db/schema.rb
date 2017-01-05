@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170104235752) do
+ActiveRecord::Schema.define(version: 20170105010303) do
 
   create_table "requests", force: :cascade do |t|
     t.string   "name",                         null: false
@@ -21,7 +21,7 @@ ActiveRecord::Schema.define(version: 20170104235752) do
     t.boolean  "accepted",     default: false, null: false
     t.boolean  "expired",      default: false, null: false
     t.date     "accepted_at"
-    t.date     "confirmed_at"
+    t.datetime "confirmed_at"
     t.date     "expired_at"
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
