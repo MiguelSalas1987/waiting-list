@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170105010303) do
+ActiveRecord::Schema.define(version: 20170105044900) do
 
   create_table "requests", force: :cascade do |t|
     t.string   "name",                         null: false
@@ -25,6 +25,7 @@ ActiveRecord::Schema.define(version: 20170105010303) do
     t.date     "expired_at"
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
+    t.index ["email"], name: "index_requests_on_email", unique: true
   end
 
 end
