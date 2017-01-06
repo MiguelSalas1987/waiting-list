@@ -10,22 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170105071827) do
+ActiveRecord::Schema.define(version: 20170106081411) do
 
   create_table "requests", force: :cascade do |t|
-    t.string   "name",                                null: false
-    t.string   "email",                               null: false
-    t.string   "phone_number",                        null: false
-    t.text     "paragraph",                           null: false
-    t.boolean  "confirmed",           default: false, null: false
-    t.boolean  "accepted",            default: false, null: false
-    t.boolean  "expired",             default: false, null: false
+    t.string   "name",                                        null: false
+    t.string   "email",                                       null: false
+    t.string   "phone_number",                                null: false
+    t.text     "paragraph",                                   null: false
+    t.boolean  "confirmed",                   default: false, null: false
+    t.boolean  "accepted",                    default: false, null: false
+    t.boolean  "expired",                     default: false, null: false
     t.date     "accepted_at"
     t.datetime "confirmed_at"
     t.date     "expired_at"
-    t.datetime "created_at",                          null: false
-    t.datetime "updated_at",                          null: false
+    t.datetime "created_at",                                  null: false
+    t.datetime "updated_at",                                  null: false
     t.string   "confirmation_digest"
+    t.boolean  "asked_for_reconfirmation",    default: false
+    t.boolean  "reconfirmed",                 default: true
+    t.datetime "reconfirmed_at"
+    t.datetime "asked_for_reconfirmation_at"
     t.index ["email"], name: "index_requests_on_email", unique: true
   end
 

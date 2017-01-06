@@ -22,6 +22,51 @@ class Request < ApplicationRecord
     end
   end
 
+  def self.check_waiting_list
+    puts "* Runing check_waiting_list *"
+    self.look_for_reconfirmation_needed
+    self.look_for_expired_requests
+  end
+
+
+  # will check the list for requests that need for reconfirmation
+  def self.look_for_reconfirmation_needed
+
+    need_confirmation = Request
+                        .waiting_list
+                        .where('requests.reconfirmed_at < ?', 1.days.ago)
+                        .where(asked_for_reconfirmation: false)
+    need_confirmation.each_with_index do |request, index|
+      request.prepare_to_reconfirmation_email
+      RequestMailer.email_reconfirmation(request, (index+1)).deliver_now
+    end
+  end
+
+  def prepare_to_reconfirmation_email
+
+      self.asked_for_reconfirmation    = true
+      self.asked_for_reconfirmation_at = Time.zone.now
+      self.reconfirmed                 = false
+      self.create_confirmation_digest
+      self.save
+  end
+
+  def self.look_for_expired_requests
+    expired_requests = self
+                       .waiting_list
+                       .where(asked_for_reconfirmation: true, reconfirmed: false)
+                       .where('requests.asked_for_reconfirmation_at < ? ', 5.days.ago)
+
+    if !expired_requests.blank?
+      expired_requests.each do |request|
+        request.update!(expired: true, expired_at: Date.today)
+      end
+    end
+
+  end
+
+
+
   def self.accept_first
     first_in_queue = self.waiting_list.first
     if first_in_queue.nil?
@@ -32,7 +77,7 @@ class Request < ApplicationRecord
   end
 
   def self.waiting_list
-    self.where(accepted: false, confirmed: true).order(confirmed_at: :asc)
+    self.where(accepted: false, confirmed: true, expired: false).order(confirmed_at: :asc)
   end
 
   def self.unconfirmed
@@ -50,6 +95,14 @@ class Request < ApplicationRecord
   def confirm!
     self.confirmed = true
     self.confirmed_at   = Time.zone.now
+    # the first reconfirmed_at date will serve to determine, when to reconfirm again.
+    self.reconfirmed_at = Time.zone.now
+    self.save
+  end
+  def reconfirm!
+    self.reconfirmed              = true
+    self.reconfirmed_at           = Time.zone.now
+    self.asked_for_reconfirmation = false
     self.save
   end
 
@@ -76,8 +129,6 @@ class Request < ApplicationRecord
     BCrypt::Password.create(string, cost: cost)
   end
 
-
-  private
     def downcase_email
       self.email =  self.email.downcase
     end

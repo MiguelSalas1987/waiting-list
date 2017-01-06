@@ -1,0 +1,13 @@
+<p>
+Hi <%= @request.name %>,
+</p>
+
+<p>
+ Thanks for your interest in our coworking space. We notice that you have been for more than 90 days in our waiting list and we haven't been able to find you a place with us yet. We need you to confirm that you are still interested in finding a place by us, please click the link below to reconfirm your request:
+</p>
+
+<%= link_to "Reconfirm your request",
+    reconfirm_url(@request.confirmation_token, email:@request.email) %>
+<p>
+Please notice that if you do not reconfirm your request in five days, your request will be expired, and you will lost your current place in our waiting list. Currently you are the number <%= @place_in_waiting_list %> in our waiting list. If you are not interest, you can ignore this email.
+</p>
