@@ -90,6 +90,15 @@ class Request < ApplicationRecord
 
   end
 
+  class <<self
+     alias_method :confirmed, :waiting_list
+  end
+
+  def self.confirmed
+    self.waiting_list
+  end
+
+
   def self.unconfirmed
 
     self.where(confirmed: false).order(created_at: :asc)
