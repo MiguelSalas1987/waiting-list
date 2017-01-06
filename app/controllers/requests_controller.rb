@@ -1,9 +1,11 @@
 class RequestsController < ApplicationController
+
   def new
     @request = Request.new
   end
 
   def create
+
     @request = Request.new(request_params)
     if @request.save
       @request.sent_confirmation_email
@@ -12,6 +14,7 @@ class RequestsController < ApplicationController
     else
       render 'new'
     end
+
   end
 
   def show
@@ -21,6 +24,7 @@ class RequestsController < ApplicationController
   end
 
   private
+
     def request_params
       params.require(:request).permit(:name, :email, :phone_number, :paragraph)
     end
