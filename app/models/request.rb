@@ -66,7 +66,9 @@ class Request < ApplicationRecord
 
     expired_requests = Request
                        .waiting_list
-                       .where(asked_for_reconfirmation: true, reconfirmed: false)
+                       .where(asked_for_reconfirmation: true,
+                              reconfirmed: false,
+                              expired:     false)
                        .where('requests.asked_for_reconfirmation_at < ? ', 5.days.ago)
 
     if !expired_requests.blank?
