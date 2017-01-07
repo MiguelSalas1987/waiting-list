@@ -3,6 +3,8 @@ class Request < ApplicationRecord
 
   validates :name, :phone_number, :paragraph, presence: true
 
+  validates :phone_number, numericality: { only_integer: true }
+
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
 
   validates :email, presence: true, length: { maximum: 255},
@@ -39,7 +41,7 @@ class Request < ApplicationRecord
 
     need_confirmation = Request
                         .waiting_list
-                        .where('requests.reconfirmed_at < ?', 50.seconds.ago)
+                        .where('requests.reconfirmed_at < ?', 90.days.ago)
                         .where(asked_for_reconfirmation: false)
 
     need_confirmation.each_with_index do |request, index|
@@ -65,7 +67,7 @@ class Request < ApplicationRecord
     expired_requests = Request
                        .waiting_list
                        .where(asked_for_reconfirmation: true, reconfirmed: false)
-                       .where('requests.asked_for_reconfirmation_at < ? ', 50.minutes.ago)
+                       .where('requests.asked_for_reconfirmation_at < ? ', 5.days.ago)
 
     if !expired_requests.blank?
       expired_requests.each do |request|
