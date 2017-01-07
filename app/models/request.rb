@@ -27,7 +27,7 @@ class Request < ApplicationRecord
 
   def self.check_waiting_list
 
-    puts "* Runing check_waiting_list *"
+    puts "* Running check_waiting_list *"
     self.look_for_reconfirmation_needed
     self.look_for_expired_requests
 
@@ -35,15 +35,17 @@ class Request < ApplicationRecord
 
   # will check the list for requests that need for reconfirmation
   def self.look_for_reconfirmation_needed
+    puts "* Running look_for_reconfirmation_needed *"
 
     need_confirmation = Request
                         .waiting_list
-                        .where('requests.reconfirmed_at < ?', 1.days.ago)
+                        .where('requests.reconfirmed_at < ?', 50.seconds.ago)
                         .where(asked_for_reconfirmation: false)
 
     need_confirmation.each_with_index do |request, index|
+      request.create_confirmation_digest
+      RequestMailer.email_reconfirmation(request, (index + 1)).deliver_now
       request.prepare_to_reconfirmation_email
-      RequestMailer.email_reconfirmation(request, (index+1)).deliver_now
     end
 
   end
@@ -53,17 +55,17 @@ class Request < ApplicationRecord
       self.asked_for_reconfirmation    = true
       self.asked_for_reconfirmation_at = Time.zone.now
       self.reconfirmed                 = false
-      self.create_confirmation_digest
       self.save
 
   end
 
   def self.look_for_expired_requests
+    puts "* Running look_for_expired_requests *"
 
-    expired_requests = self
+    expired_requests = Request
                        .waiting_list
                        .where(asked_for_reconfirmation: true, reconfirmed: false)
-                       .where('requests.asked_for_reconfirmation_at < ? ', 5.days.ago)
+                       .where('requests.asked_for_reconfirmation_at < ? ', 50.minutes.ago)
 
     if !expired_requests.blank?
       expired_requests.each do |request|

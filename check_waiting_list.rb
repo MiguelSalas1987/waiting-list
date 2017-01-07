@@ -7,5 +7,7 @@ module Clockwork
     puts "Running #{job}"
   end
 
-  every(1.day, 'midnight.job'){ Request.check_waiting_list}
+  #every(1.day, 'midnight.job'){ Request.check_waiting_list}
+  #test
+  every(1.minutes, 'midnight.job'){ Request.check_waiting_list}
 end

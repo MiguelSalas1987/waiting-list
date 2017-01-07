@@ -6,10 +6,11 @@ class EmailConfirmationsController < ApplicationController
   if request && request.authenticated?(:confirmation, params[:id] )
     request.confirm!
     flash[:success] = "Your request has been confirmed. We will have you in our wating list until we find a place for you."
-    redirect_to request
   else
-    #handle invalid link
+    #handle invalid link or error
+    flash[:warning] = "something went wrong, please try again later."
   end
+  redirect_to request
  end
 
  def reconfirm
