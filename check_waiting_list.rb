@@ -8,8 +8,7 @@ module Clockwork
   end
 
   every(1.day, 'midnight.job'){ Request.check_waiting_list}
-
-  #for testing purposes
+  #for testing purposes replace the line above with the line below
   #every(1.minutes, 'midnight.job'){ Request.check_waiting_list}
 
 end

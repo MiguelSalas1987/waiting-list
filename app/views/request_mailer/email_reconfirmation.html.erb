@@ -11,8 +11,8 @@ Hi <%= @request.name %>,
 
 <%# This will show the link in the clockwork terminal for testing purposes,
   # for some reason the mail does not show up in the server logs %>
-<%# puts link_to "Reconfirm your request",
-  # reconfirm_url(@request.confirmation_token, email:@request.email) %>
+<% puts link_to "Reconfirm your request",
+   reconfirm_url(@request.confirmation_token, email:@request.email) %>
 
 <p>
 Please notice that if you do not reconfirm your request in five days, your request will be expired, and you will lost your current place in our waiting list. Currently you are the number <%= @place_in_waiting_list %> in our waiting list. If you are not interest, you can ignore this email.

@@ -98,6 +98,8 @@ class Request < ApplicationRecord
 
     need_confirmation = Request.waiting_list
                         .where('requests.reconfirmed_at < ?', 90.days.ago)
+    #for testing purposes,  replace the line from above with the line below
+    #                    .where('requests.reconfirmed_at < ?', 1.minute.ago)
 
     need_confirmation.each_with_index do |request, index|
 
@@ -112,9 +114,11 @@ class Request < ApplicationRecord
     puts "* Running look_for_expired_requests *"
 
     expired_requests = Request
-                       .waiting_list
                        .where(status: 2) # where status is waiting_reconfirmation: 2.
                        .where('requests.asked_for_reconfirmation_at < ? ', 5.days.ago)
+    #for testing purposes,  replace the line from above with the line below
+    #                  .where('requests.asked_for_reconfirmation_at < ? ', 1.minute.ago)
+
 
     if !expired_requests.blank?
       expired_requests.each do |request|
