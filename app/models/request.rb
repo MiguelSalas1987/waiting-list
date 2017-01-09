@@ -15,14 +15,70 @@ class Request < ApplicationRecord
   before_save   :downcase_email
   before_create :create_confirmation_digest
 
-  def accept!
+  enum status: { unconfirmed: 0, confirmed: 1,  waiting_reconfirmation: 2,
+                 reconfirmed: 3, expired: 4, accepted: 5} do
 
-    if confirmed?
-      self.accepted = true
-      self.accepted_at = DateTime.now
-      self.save
-    else
-      self.errors.add(:confirmed, "The request must be confirmed before being accepted")
+    event :confirm do
+
+      after do
+
+        self.confirmed_at = Time.zone.now
+        # reconfirmed_at will be set at confirmation date,
+        # this will serve to determine, when to reconfirm again.
+        self.reconfirmed_at = Time.zone.now
+        self.save
+
+      end
+
+      transition unconfirmed: :confirmed
+
+    end
+
+    event :ask_for_reconfirmation do
+
+      before do
+
+        self.create_confirmation_digest
+        self.asked_for_reconfirmation_at = Time.zone.now
+        self.save
+
+      end
+
+      transition [:confirmed, :reconfirmed] => :waiting_reconfirmation
+
+    end
+
+    event :reconfirm! do
+
+      after do
+        self.reconfirmed_at = Time.zone.now
+        self.save
+      end
+
+      transition waiting_reconfirmation: :reconfirmed
+
+    end
+
+    event :expire do
+
+      after do
+        self.expired_at = Time.zone.now
+        self.save
+      end
+
+      transition waiting_reconfirmation: :expired
+
+    end
+
+    event :accept! do
+
+      after do
+        self.accepted_at = Time.zone.now
+        self.save
+      end
+
+      transition [:confirmed, :reconfirmed] => :accepted
+
     end
 
   end
@@ -37,27 +93,18 @@ class Request < ApplicationRecord
 
   # will check the list for requests that need for reconfirmation
   def self.look_for_reconfirmation_needed
+
     puts "* Running look_for_reconfirmation_needed *"
 
-    need_confirmation = Request
-                        .waiting_list
+    need_confirmation = Request.waiting_list
                         .where('requests.reconfirmed_at < ?', 90.days.ago)
-                        .where(asked_for_reconfirmation: false)
 
     need_confirmation.each_with_index do |request, index|
-      request.create_confirmation_digest
+
+      request.ask_for_reconfirmation
       RequestMailer.email_reconfirmation(request, (index + 1)).deliver_now
-      request.prepare_to_reconfirmation_email
+
     end
-
-  end
-
-  def prepare_to_reconfirmation_email
-
-      self.asked_for_reconfirmation    = true
-      self.asked_for_reconfirmation_at = Time.zone.now
-      self.reconfirmed                 = false
-      self.save
 
   end
 
@@ -66,14 +113,14 @@ class Request < ApplicationRecord
 
     expired_requests = Request
                        .waiting_list
-                       .where(asked_for_reconfirmation: true,
-                              reconfirmed: false,
-                              expired:     false)
+                       .where(status: 2) # where status is waiting_reconfirmation: 2.
                        .where('requests.asked_for_reconfirmation_at < ? ', 5.days.ago)
 
     if !expired_requests.blank?
       expired_requests.each do |request|
-        request.update!(expired: true, expired_at: Date.today)
+
+        request.expire
+
       end
     end
 
@@ -91,8 +138,8 @@ class Request < ApplicationRecord
   end
 
   def self.waiting_list
-
-    self.where(accepted: false, confirmed: true, expired: false).order(confirmed_at: :asc)
+    # where status is confirmed: 1 or reconfirmed: 3.
+    self.where(status: [1,3]).order(confirmed_at: :asc)
 
   end
 
@@ -107,38 +154,22 @@ class Request < ApplicationRecord
 
   def self.unconfirmed
 
-    self.where(confirmed: false).order(created_at: :asc)
+    # where status is unconfirmed: 0.
+    self.where(status: 0).order(created_at: :asc)
 
   end
 
   def self.accepted
 
-    self.where(accepted: true).order(accepted_at: :asc)
+    #where status is accepted: 5.
+    self.where(status: 5).order(accepted_at: :asc)
 
   end
 
   def self.expired
 
-    self.where(expired: true).order(expired_at: :asc)
-
-  end
-
-  def confirm!
-
-    self.confirmed = true
-    self.confirmed_at   = Time.zone.now
-    # the first reconfirmed_at date will serve to determine, when to reconfirm again.
-    self.reconfirmed_at = Time.zone.now
-    self.save
-
-  end
-
-  def reconfirm!
-
-    self.reconfirmed              = true
-    self.reconfirmed_at           = Time.zone.now
-    self.asked_for_reconfirmation = false
-    self.save
+    #where status is expired: 4.
+    self.where(status: 4).order(expired_at: :desc)
 
   end
 
